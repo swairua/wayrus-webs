@@ -8,6 +8,7 @@ import {
   AlertCircle,
   CheckCircle,
 } from "lucide-react";
+import { apiClient } from "@/lib/api-client";
 
 interface LogEntry {
   id?: number;
@@ -30,31 +31,19 @@ export default function AdminLogs() {
     setError(null);
     setAllLogs([]);
     try {
-      const token = localStorage.getItem("admin_token");
-      const response = await fetch("/api/logs", {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      const data = await apiClient.get("/logs");
 
-      const data = await response.json();
-
-      if (response.ok && data.data) {
-        // Parse logs from database records
-        if (Array.isArray(data.data)) {
-          const parsedLogs: LogEntry[] = data.data
-            .map((log: any, index: number) => ({
-              id: log.id || index,
-              message: log.message || "",
-              level: log.level || "INFO",
-              created_at: log.created_at || "",
-            }))
-            .reverse(); // Show newest logs first
-          setAllLogs(parsedLogs);
-          setCurrentPage(1);
-        } else {
-          setAllLogs([]);
-        }
-      } else if (!response.ok) {
-        throw new Error(`Failed to load logs (${response.status})`);
+      if (data.data && Array.isArray(data.data)) {
+        const parsedLogs: LogEntry[] = data.data
+          .map((log: any, index: number) => ({
+            id: log.id || index,
+            message: log.message || "",
+            level: log.level || "INFO",
+            created_at: log.created_at || "",
+          }))
+          .reverse();
+        setAllLogs(parsedLogs);
+        setCurrentPage(1);
       } else {
         setAllLogs([]);
       }

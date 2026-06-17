@@ -14,11 +14,6 @@ export default defineConfig(({ mode }) => ({
         changeOrigin: true,
         cookieDomainRewrite: "localhost",
       },
-      "/api": {
-        target: "http://localhost:8000",
-        changeOrigin: true,
-        cookieDomainRewrite: "localhost",
-      },
     },
     fs: {
       allow: [".", "./client", "./shared"],

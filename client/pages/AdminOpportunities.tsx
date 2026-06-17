@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { apiClient } from "@/lib/api-client";
 
 interface Opportunity {
   id?: number;
@@ -36,39 +37,24 @@ export default function AdminOpportunities() {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem("admin_token");
       const params = new URLSearchParams({
         page: String(p),
         pageSize: String(pageSize),
       });
       if (q) params.set("q", q);
 
-      const response = await fetch(`/api/opportunities?${params.toString()}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      const data = await apiClient.get(`/opportunities?${params.toString()}`);
 
-      const data = await response.json();
-
-      if (data.items && Array.isArray(data.items)) {
-        setItems(data.items);
-        setTotal(data.total || data.items.length);
-      } else if (data.data && Array.isArray(data.data)) {
+      if (data.data && Array.isArray(data.data)) {
         const opportunities = data.data;
         setItems(opportunities.slice(0, pageSize));
-        setTotal(opportunities.length);
+        setTotal(data.count || opportunities.length);
       } else if (Array.isArray(data)) {
         setItems(data.slice(0, pageSize));
         setTotal(data.length);
       } else {
         setItems([]);
         setTotal(0);
-      }
-
-      const totalCount =
-        data.total || (Array.isArray(data) ? data.length : total);
-      const lastPage = Math.max(1, Math.ceil(totalCount / pageSize));
-      if (p > lastPage) {
-        setPage(lastPage);
       }
     } catch (e: any) {
       setError(`Failed to load (${e.message || e})`);
@@ -97,19 +83,7 @@ export default function AdminOpportunities() {
     }, 200);
 
     try {
-      const token = localStorage.getItem("admin_token");
-      const response = await fetch("/api/opportunities/sync", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({}),
-      });
-
-      if (!response.ok) {
-        throw new Error("Sync failed");
-      }
+      await apiClient.post("/opportunities/sync", {});
 
       setSyncProgress(100);
       await new Promise((resolve) => setTimeout(resolve, 300));
@@ -129,15 +103,7 @@ export default function AdminOpportunities() {
   async function del(id?: number) {
     if (!id || !confirm("Delete opportunity?")) return;
     try {
-      const token = localStorage.getItem("admin_token");
-      const response = await fetch(`/api/opportunities/${id}`, {
-        method: "DELETE",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-
-      if (!response.ok) {
-        throw new Error("Delete failed");
-      }
+      await apiClient.delete(`/opportunities/${id}`);
 
       const newTotal = Math.max(0, total - 1);
       const lastPage = Math.max(1, Math.ceil(newTotal / pageSize));

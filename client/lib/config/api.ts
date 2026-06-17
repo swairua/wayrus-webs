@@ -1,22 +1,13 @@
 /**
  * API Configuration
- * Local Dev: /api.php proxied by Vite to remote wayrus.co.ke/api.php
- * Staging (fly.dev): /api.php proxied by Express to remote wayrus.co.ke/api.php
- * Production (Apache): /api.php is local
+ * All environments route requests through /api.php.
+ * - Dev: Vite proxies /api.php to https://wayrus.co.ke/api.php
+ * - Production (Apache): .htaccess rewrites /api/* to api.php?request=*
  *
- * Note: In all environments, the frontend uses /api.php.
- * The environment handles proxying appropriately.
+ * All API calls go through the live server's api.php at wayrus.co.ke
  */
 
-// Determine API base URL based on environment
 function getApiBaseUrl(): string {
-  if (typeof window === "undefined") {
-    // Server-side (shouldn't happen, but fallback)
-    return "/api.php";
-  }
-
-  // Always use local /api.php - proxying is handled by the environment
-  // (Vite in dev, Express in staging/fly.dev, Apache in production)
   return "/api.php";
 }
 
