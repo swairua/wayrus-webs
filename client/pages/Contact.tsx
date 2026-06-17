@@ -137,7 +137,7 @@ export default function Contact() {
     <Layout>
       <SEO title="Contact – Wayrus Business Solutions Ltd" />
 
-      <section className="relative min-h-screen overflow-hidden py-12 sm:py-20">
+      <section className="relative min-h-screen py-12 sm:py-20">
         {/* Decorative blobs */}
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-secondary/5 rounded-full blur-3xl" />
@@ -149,7 +149,7 @@ export default function Contact() {
             initial="hidden"
             animate="show"
             transition={{ staggerChildren: 0.1 }}
-            className="text-center mb-12 sm:mb-16"
+            className="text-center mb-12 sm:mb-16 overflow-visible"
           >
             <motion.h1
               variants={fadeUp}

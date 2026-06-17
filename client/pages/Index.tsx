@@ -3,9 +3,20 @@ import Layout from "@/components/layout/Layout";
 import SEO from "@/components/SEO";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { ArrowRight, Zap } from "lucide-react";
+import { ArrowRight, Zap, Globe } from "lucide-react";
 import { HeroImage, CardImage } from "@/components/ui/optimized-image";
 import { useAdmin } from "@/hooks/use-admin";
+import { apiClient } from "@/lib/api-client";
+
+interface Portfolio {
+  id: number;
+  title: string;
+  description: string;
+  website_url: string;
+  screenshot_url: string;
+  status: string;
+  created_at: string;
+}
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -25,10 +36,31 @@ const containerVariants = {
 
 export default function Index() {
   const { isAuthenticated } = useAdmin();
+  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
+  const [loadingPortfolios, setLoadingPortfolios] = useState(true);
+
   const seoDescription =
     "Wayrus Business Solutions Ltd - Expert web development, mobile apps, ERP systems, and SaaS solutions. Transforming businesses through smart digital innovation.";
   const seoImage =
     "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=1200&auto=format&fit=crop";
+
+  useEffect(() => {
+    async function loadPortfolios() {
+      setLoadingPortfolios(true);
+      try {
+        const data = await apiClient.get<{ data: Portfolio[] }>(
+          "/portfolios/public",
+        );
+        setPortfolios(data.data || []);
+      } catch (e) {
+        console.error("Failed to load portfolios", e);
+      } finally {
+        setLoadingPortfolios(false);
+      }
+    }
+
+    loadPortfolios();
+  }, []);
 
   const slides = [
     {
@@ -100,26 +132,22 @@ export default function Index() {
     },
   ];
 
-  const caseStudies = [
-    {
-      title: "E‑commerce web app",
-      img: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=1600&auto=format&fit=crop",
-      gradient: "from-rose-400 to-pink-500",
-      bgGradient: "from-rose-50 to-pink-50 dark:from-rose-950 dark:to-pink-950",
-    },
-    {
-      title: "Healthcare ERP",
-      img: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=1600&auto=format&fit=crop",
-      gradient: "from-teal-400 to-cyan-500",
-      bgGradient: "from-teal-50 to-cyan-50 dark:from-teal-950 dark:to-cyan-950",
-    },
-    {
-      title: "Mobile banking app",
-      img: "https://images.pexels.com/photos/5054539/pexels-photo-5054539.jpeg",
-      gradient: "from-violet-400 to-purple-500",
-      bgGradient:
-        "from-violet-50 to-purple-50 dark:from-violet-950 dark:to-purple-950",
-    },
+  const gradients = [
+    "from-rose-400 to-pink-500",
+    "from-teal-400 to-cyan-500",
+    "from-violet-400 to-purple-500",
+    "from-blue-400 to-cyan-500",
+    "from-purple-400 to-pink-500",
+    "from-green-400 to-emerald-500",
+  ];
+
+  const bgGradients = [
+    "from-rose-50 to-pink-50 dark:from-rose-950 dark:to-pink-950",
+    "from-teal-50 to-cyan-50 dark:from-teal-950 dark:to-cyan-950",
+    "from-violet-50 to-purple-50 dark:from-violet-950 dark:to-purple-950",
+    "from-blue-50 to-cyan-50 dark:from-blue-950 dark:to-cyan-950",
+    "from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950",
+    "from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950",
   ];
 
   return (
@@ -328,54 +356,99 @@ export default function Index() {
             </motion.div>
           </motion.div>
 
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, amount: 0.1, margin: "0px 0px -100px 0px" }}
-            variants={containerVariants}
-            className="grid gap-6 md:grid-cols-3"
-          >
-            {caseStudies.map((caseStudy, idx) => (
-              <motion.div
-                key={caseStudy.title}
-                variants={fadeUp}
-                whileHover={{ y: -8, transition: { duration: 0.2 } }}
-              >
-                <Link to="/portfolio" className="group block h-full">
-                  <div
-                    className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${caseStudy.bgGradient} h-full flex flex-col transition-all duration-300`}
+          {loadingPortfolios && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-12"
+            >
+              <p className="text-muted-foreground">Loading portfolios...</p>
+            </motion.div>
+          )}
+
+          {!loadingPortfolios && portfolios.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-16 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border border-slate-200/50 dark:border-slate-700/50"
+            >
+              <p className="text-muted-foreground text-lg">
+                No portfolios available yet.
+              </p>
+            </motion.div>
+          )}
+
+          {!loadingPortfolios && portfolios.length > 0 && (
+            <motion.div
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.1, margin: "0px 0px -100px 0px" }}
+              variants={containerVariants}
+              className="grid gap-6 md:grid-cols-3"
+            >
+              {portfolios.slice(0, 3).map((portfolio, idx) => {
+                const gradient = gradients[idx % gradients.length];
+                const bgGradient = bgGradients[idx % bgGradients.length];
+
+                return (
+                  <motion.div
+                    key={portfolio.id}
+                    variants={fadeUp}
+                    whileHover={{ y: -8, transition: { duration: 0.2 } }}
                   >
-                    {/* Image Container */}
-                    <div className="h-64 relative overflow-hidden">
-                      <CardImage
-                        src={caseStudy.img}
-                        alt={caseStudy.title}
-                        width={800}
-                        height={600}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                    </div>
+                    <Link to="/portfolio" className="group block h-full">
+                      <div
+                        className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${bgGradient} h-full flex flex-col transition-all duration-300`}
+                      >
+                        {/* Image Container */}
+                        <div className="h-64 relative overflow-hidden bg-gradient-to-br from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center">
+                          {portfolio.screenshot_url ? (
+                            <>
+                              <CardImage
+                                src={portfolio.screenshot_url}
+                                alt={portfolio.title}
+                                width={800}
+                                height={600}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                            </>
+                          ) : (
+                            <div className="text-center text-white">
+                              <div
+                                className={`inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br ${gradient} shadow-lg mb-3`}
+                              >
+                                <Globe className="h-8 w-8" />
+                              </div>
+                              <p className="text-sm font-semibold">
+                                Visit Website
+                              </p>
+                            </div>
+                          )}
+                        </div>
 
-                    {/* Content Overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 p-6">
-                      <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-yellow-300 transition-colors">
-                        {caseStudy.title}
-                      </h3>
-                      <p className="text-white/80 text-sm">
-                        Delivered high‑quality UX and measurable outcomes
-                      </p>
-                    </div>
+                        {/* Content Overlay */}
+                        <div className="absolute bottom-0 left-0 right-0 p-6">
+                          <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-yellow-300 transition-colors">
+                            {portfolio.title}
+                          </h3>
+                          <p className="text-white/80 text-sm line-clamp-2">
+                            {portfolio.description ||
+                              "Delivered high‑quality UX and measurable outcomes"}
+                          </p>
+                        </div>
 
-                    {/* Accent line */}
-                    <div
-                      className={`absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r ${caseStudy.gradient} transition-all duration-500 group-hover:w-full`}
-                    />
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-          </motion.div>
+                        {/* Accent line */}
+                        <div
+                          className={`absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r ${gradient} transition-all duration-500 group-hover:w-full`}
+                        />
+                      </div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          )}
         </div>
       </section>
 

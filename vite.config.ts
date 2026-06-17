@@ -16,6 +16,14 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     outDir: "dist",
+    emptyOutDir: true,
+    copyPublicDir: true,
+    minify: "esbuild",
+    rollupOptions: {
+      output: {
+        preserveModules: false,
+      },
+    },
   },
   plugins: [react(), copyApiPlugin()],
   resolve: {
