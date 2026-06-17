@@ -149,7 +149,7 @@ export default function Contact() {
             initial="hidden"
             animate="show"
             transition={{ staggerChildren: 0.1 }}
-            className="text-center mb-12 sm:mb-16"
+            className="text-center mb-12 sm:mb-16 overflow-visible"
           >
             <motion.h1
               variants={fadeUp}
