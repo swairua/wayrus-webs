@@ -4,6 +4,7 @@ import SEO from "@/components/SEO";
 import { Trash2, Zap } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api-client";
@@ -164,8 +165,22 @@ export default function AdminOpportunities() {
         )}
 
         {loading ? (
-          <div className="text-center py-8 text-muted-foreground">
-            Loading opportunities...
+          <div className="space-y-4">
+            <Skeleton className="h-10 w-full max-w-sm" />
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-muted/30 p-4 border-b">
+                <Skeleton className="h-5 w-32" />
+              </div>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="p-4 border-b last:border-0 flex items-center gap-4">
+                  <div className="space-y-2 flex-1">
+                    <Skeleton className="h-4 w-48" />
+                    <Skeleton className="h-3 w-32" />
+                  </div>
+                  <Skeleton className="h-8 w-16" />
+                </div>
+              ))}
+            </div>
           </div>
         ) : items.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">

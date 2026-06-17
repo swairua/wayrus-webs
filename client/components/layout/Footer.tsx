@@ -1,7 +1,7 @@
 import { FormEvent, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Mail, Phone, MapPin, Zap, CheckCircle, ExternalLink } from "lucide-react";
+import { Mail, Phone, MapPin, Zap, CheckCircle } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 
 const fadeUp = {
@@ -315,7 +315,7 @@ export default function Footer() {
             <ul className="space-y-2">
               {[
                 { name: "About", link: "/" },
-                { name: "Portfolio", link: "/portfolio" },
+                { name: "Portfolio", link: "/portfolios" },
                 { name: "Contact", link: "/contact" },
                 { name: "Opportunities", link: "/opportunities" },
                 { name: isAdmin ? "Admin Panel" : "Admin Login", link: isAdmin ? "/admin/users" : "/admin/login" },
@@ -378,33 +378,23 @@ export default function Footer() {
 
       {/* Bottom Bar */}
       <div className="border-t border-slate-200/50 dark:border-slate-700/50 relative z-10 bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900">
-        <motion.div
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: "0px 0px -100px 0px" }}
-          variants={containerVariants}
-          className="container py-6 sm:py-8 flex flex-col sm:flex-row items-center justify-between gap-4"
-        >
-          <motion.p
-            variants={fadeUp}
-            className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 text-center sm:text-left"
-          >
+        <div className="container py-6 sm:py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 text-center sm:text-left">
             © {new Date().getFullYear()} Wayrus Business Solutions Ltd. All
             rights reserved.
-          </motion.p>
-          <motion.div variants={fadeUp} className="flex items-center gap-3">
+          </p>
+          <div className="flex items-center gap-3 flex-wrap justify-center">
             {isAdmin ? (
               <Link
                 to="/admin/users"
-                className="text-xs sm:text-sm text-primary hover:text-primary/80 transition-colors font-medium hover:underline flex items-center gap-1"
+                className="bg-primary text-primary-foreground px-3 py-1.5 rounded-md text-xs font-semibold hover:opacity-90 transition-opacity"
               >
-                <ExternalLink className="w-3 h-3" />
                 Admin Panel
               </Link>
             ) : (
               <Link
                 to="/admin/login"
-                className="text-xs sm:text-sm text-primary hover:text-primary/80 transition-colors font-medium hover:underline"
+                className="bg-primary text-primary-foreground px-3 py-1.5 rounded-md text-xs font-semibold hover:opacity-90 transition-opacity"
               >
                 Admin Login
               </Link>
@@ -423,8 +413,8 @@ export default function Footer() {
             >
               Terms
             </Link>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </div>
     </footer>
   );

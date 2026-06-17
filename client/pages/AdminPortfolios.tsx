@@ -3,6 +3,7 @@ import AdminLayout from "@/components/layout/AdminLayout";
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api-client";
 import {
@@ -159,11 +160,20 @@ export default function AdminPortfolios() {
         )}
 
         {loading && (
-          <div className="flex justify-center items-center py-12">
-            <div className="text-muted-foreground">
-              <div className="animate-spin mb-2 text-2xl">⚡</div>
-              Loading portfolios...
-            </div>
+          <div className="space-y-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="rounded-xl border p-6 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2 flex-1">
+                    <Skeleton className="h-5 w-48" />
+                    <Skeleton className="h-3 w-32" />
+                  </div>
+                  <Skeleton className="h-8 w-20" />
+                </div>
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+              </div>
+            ))}
           </div>
         )}
 

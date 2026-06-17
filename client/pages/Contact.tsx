@@ -13,6 +13,7 @@ import {
   Calendar,
   DollarSign,
   ArrowRight,
+  Loader2,
 } from "lucide-react";
 
 const fadeUp = {
@@ -490,7 +491,7 @@ export default function Contact() {
                     >
                       {isSubmitting ? (
                         <>
-                          <span className="animate-spin">⚡</span>
+                          <Loader2 className="w-4 h-4 animate-spin" />
                           Submitting...
                         </>
                       ) : (

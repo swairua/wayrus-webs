@@ -13,9 +13,7 @@
   "scripts": {
     "dev": "vite",
     "dev:client": "vite",
-    "dev:server": "node --import tsx server/dev.ts",
     "dev:php": "php -S localhost:8000",
-    "dev:full": "concurrently \"node --import tsx server/dev.ts\" \"vite\"",
     "build": "vite build",
     "start": "echo 'Server no longer needed - use your PHP hosting'",
     "test": "vitest --run",
@@ -23,10 +21,13 @@
     "typecheck": "tsc"
   },
   "dependencies": {
+    "@types/xml2js": "^0.4.14",
     "bcrypt": "^6.0.0",
     "cheerio": "^1.1.2",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
+    "mysql2": "^3.22.5",
+    "xml2js": "^0.6.2",
     "zod": "^3.25.76"
   },
   "devDependencies": {

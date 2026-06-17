@@ -176,6 +176,8 @@ if ($request_param && !$action) {
                 $action = 'sync_opportunities';
             } elseif ($segments[0] === 'discovery-leads' || $segments[0] === 'discovery_leads') {
                 $action = 'sync_discovery_leads';
+            } elseif ($segments[0] === 'leads') {
+                $action = 'sync_leads';
             }
         }
         // Handle cleanup endpoints (MUST come before table CRUD routes)
@@ -184,6 +186,10 @@ if ($request_param && !$action) {
                 $action = 'cleanup_duplicates';
                 $table = 'web_app_leads';
             }
+        }
+        // Handle /scrape endpoint
+        elseif ($segments[0] === 'scrape' && $method === 'POST') {
+            $action = 'scrape';
         }
         // Handle table CRUD routes (leads, contacts, quotations, portfolios, etc.)
         elseif (in_array($segments[0], ['leads', 'contacts', 'quotations', 'portfolios', 'web_app_leads', 'web-leads', 'opportunities', 'discovery-leads', 'discovery_leads', 'logs'])) {
@@ -580,25 +586,359 @@ try {
         echo json_encode(['status' => 'success', 'message' => 'Table dropped']);
     }
     elseif ($action === "sync_opportunities") {
-        // Sync opportunities - placeholder that just returns success
-        // In a real implementation, this would scrape from external sources
-        // For now, we just acknowledge the sync request
+        $urls = [
+            'https://stackoverflow.com/jobs/feed' => 'Stack Overflow Jobs',
+            'https://remoteok.com/feed.xml' => 'Remote OK',
+            'https://weworkremotely.com/' => 'We Work Remotely',
+        ];
+        $keywords = ['website design', 'web development', 'mobile app', 'SaaS', 'ERP', 'CRM', 'frontend', 'react', 'full stack', 'software', 'ecommerce', 'UI UX', 'digital marketing'];
+        $totalSaved = 0;
+        $sourceStats = [];
+
+        foreach ($urls as $feedUrl => $sourceName) {
+            $feedContent = @file_get_contents($feedUrl, false, stream_context_create([
+                'http' => ['timeout' => 15, 'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'],
+            ]));
+            if (!$feedContent) {
+                $sourceStats[$sourceName] = ['found' => 0, 'saved' => 0, 'error' => 'unreachable'];
+                continue;
+            }
+
+            $xml = @simplexml_load_string($feedContent);
+            if (!$xml) {
+                $sourceStats[$sourceName] = ['found' => 0, 'saved' => 0, 'error' => 'invalid xml'];
+                continue;
+            }
+
+            $found = 0;
+            $saved = 0;
+            foreach ($xml->channel->item as $item) {
+                $title = (string)$item->title;
+                $desc = strip_tags((string)$item->description);
+                $link = (string)$item->link;
+                $text = $title . ' ' . $desc;
+
+                $matched = false;
+                foreach ($keywords as $kw) {
+                    if (stripos($text, $kw) !== false) { $matched = true; break; }
+                }
+                if (!$matched) continue;
+                $found++;
+
+                $snippet = mb_substr($text, 0, 500);
+                $escapedSource = escape($conn, $sourceName);
+                $escapedSnippet = escape($conn, $snippet);
+                $escapedLink = escape($conn, $link);
+
+                $check = $conn->query("SELECT id FROM opportunities WHERE url = '$escapedLink' AND source = '$escapedSource' LIMIT 1");
+                if ($check && $check->num_rows > 0) continue;
+
+                $sql = "INSERT INTO opportunities (source, snippet, url) VALUES ('$escapedSource', '$escapedSnippet', '$escapedLink')";
+                if ($conn->query($sql)) $saved++;
+            }
+            $sourceStats[$sourceName] = ['found' => $found, 'saved' => $saved];
+            $totalSaved += $saved;
+        }
+
         echo json_encode([
             'status' => 'success',
-            'message' => 'Opportunities sync completed',
-            'synced' => 0,
-            'total' => 0
+            'message' => "Opportunities sync completed: $totalSaved new entries",
+            'synced' => $totalSaved,
+            'sources' => $sourceStats,
+        ]);
+    }
+    elseif ($action === "sync_leads") {
+        $keywords = ['web design', 'software', 'digital marketing', 'IT solutions', 'technology', 'consulting', 'development'];
+        $totalSaved = 0;
+        $items = [];
+
+        // Fetch from predefined business-relevant sources
+        $sources = [
+            ['url' => 'https://www.cylex.us.com/', 'name' => 'Cylex US'],
+        ];
+
+        foreach ($sources as $source) {
+            $html = @file_get_contents($source['url'], false, stream_context_create([
+                'http' => ['timeout' => 10, 'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'],
+            ]));
+            if (!$html) continue;
+
+            $dom = new DOMDocument();
+            @$dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
+            $xpath = new DOMXPath($dom);
+
+            // Extract text blocks
+            $textNodes = $xpath->query('//text()[normalize-space()]');
+            $text = '';
+            foreach ($textNodes as $node) {
+                $t = trim($node->textContent);
+                if (strlen($t) > 30) $text .= $t . "\n";
+            }
+
+            $lines = explode("\n", $text);
+            $buffer = [];
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if (strlen($line) < 5) continue;
+
+                $businessName = null;
+                $phone = null;
+
+                // Check if line looks like a business name (starts with capital, 2-5 words)
+                if (preg_match('/^[A-Z][a-zA-Z0-9\s&\.,]+$/', $line) && str_word_count($line) >= 2 && str_word_count($line) <= 6) {
+                    $businessName = $line;
+                }
+
+                // Check for phone numbers
+                if (preg_match('/((?:\+?1)?[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4})/', $line, $m)) {
+                    $phone = $m[1];
+                    // If we have a business name in buffer, associate
+                    if (!$businessName && count($buffer) > 0) {
+                        $businessName = array_pop($buffer);
+                    }
+                }
+
+                if ($businessName && mb_strlen($businessName) > 5) {
+                    // Check if this looks like a real business (not a generic category)
+                    $isGeneric = false;
+                    foreach (['Home', 'About', 'Contact', 'Services', 'Products', 'Search', 'Login', 'Sign'] as $g) {
+                        if (stripos($businessName, $g) !== false && strlen($businessName) < 15) {
+                            $isGeneric = true; break;
+                        }
+                    }
+                    if ($isGeneric) continue;
+
+                    $escapedName = escape($conn, $businessName);
+                    $escapedPhone = escape($conn, $phone ?? '');
+
+                    $check = $conn->query("SELECT id FROM leads WHERE business_name = '$escapedName' LIMIT 1");
+                    if ($check && $check->num_rows > 0) continue;
+
+                    $sql = "INSERT INTO leads (business_name, phone, lead_source, status, created_at)
+                            VALUES ('$escapedName', '$escapedPhone', 'directory_scrape', 'new', NOW())";
+                    if ($conn->query($sql)) {
+                        $totalSaved++;
+                        $items[] = ['business_name' => $businessName, 'phone' => $phone];
+                    }
+                } elseif ($businessName) {
+                    $buffer[] = $businessName;
+                    if (count($buffer) > 5) array_shift($buffer);
+                }
+            }
+        }
+
+        echo json_encode([
+            'status' => 'success',
+            'message' => "Leads sync completed: $totalSaved new leads",
+            'synced' => $totalSaved,
+            'items' => $items,
         ]);
     }
     elseif ($action === "sync_discovery_leads") {
-        // Sync discovery leads - placeholder that just returns success
-        // In a real implementation, this would discover leads from APIs
-        // For now, we just acknowledge the sync request
+        $totalSaved = 0;
+        $totalChecked = 0;
+        $items = [];
+
+        // Phase 1: Check existing leads' websites
+        $leads = $conn->query("SELECT id, business_name, website_url, website_status FROM leads WHERE website_url IS NOT NULL AND website_url != '' LIMIT 20");
+        if ($leads) {
+            while ($lead = $leads->fetch_assoc()) {
+                $totalChecked++;
+                $url = $lead['website_url'];
+                if (!preg_match('#^https?://#', $url)) $url = 'https://' . $url;
+
+                $ch = curl_init();
+                curl_setopt_array($ch, [
+                    CURLOPT_URL => $url,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_TIMEOUT => 8,
+                    CURLOPT_CONNECTTIMEOUT => 5,
+                    CURLOPT_NOBODY => true,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_USERAGENT => 'Mozilla/5.0',
+                ]);
+                curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $redirectCount = curl_getinfo($ch, CURLINFO_REDIRECT_COUNT);
+                curl_close($ch);
+
+                $status = 'active';
+                if ($httpCode >= 400) $status = 'broken';
+                elseif ($redirectCount > 3) $status = 'redirect_loop';
+
+                $escapedId = escape($conn, $lead['id']);
+                $escapedStatus = escape($conn, $status);
+                $conn->query("UPDATE leads SET website_status = '$escapedStatus' WHERE id = '$escapedId'");
+
+                if ($status === 'broken') {
+                    $items[] = ['business_name' => $lead['business_name'], 'website' => $lead['website_url'], 'status' => 'broken'];
+                    // Insert into discovery_leads table
+                    $escapedName = escape($conn, $lead['business_name']);
+                    $escapedUrl = escape($conn, $lead['website_url']);
+                    $conn->query("INSERT IGNORE INTO discovery_leads (business_name, website_url, website_status, status)
+                                  VALUES ('$escapedName', '$escapedUrl', 'broken', 'new')");
+                    $totalSaved++;
+                }
+            }
+        }
+
+        // Phase 2: Scrape directory for potential leads without websites
+        $html = @file_get_contents('https://www.hotfrog.com/', false, stream_context_create([
+            'http' => ['timeout' => 10, 'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'],
+        ]));
+        if ($html) {
+            $dom = new DOMDocument();
+            @$dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
+            $xpath = new DOMXPath($dom);
+            $textNodes = $xpath->query('//a[not(ancestor::nav) and not(ancestor::header) and not(ancestor::footer)]');
+            $seen = [];
+
+            foreach ($textNodes as $node) {
+                $name = trim($node->textContent);
+                if (strlen($name) < 5 || strlen($name) > 100) continue;
+                if (!preg_match('/^[A-Z][a-zA-Z0-9\s&\.,\-\']+$/', $name)) continue;
+
+                $href = '';
+                foreach ($node->attributes as $attr) {
+                    if ($attr->name === 'href') $href = $attr->value;
+                }
+
+                $fingerprint = md5(mb_strtolower($name));
+                if (isset($seen[$fingerprint])) continue;
+                $seen[$fingerprint] = true;
+
+                $hasWebsite = $href && preg_match('#^https?://#', $href);
+                $check = $conn->query("SELECT id FROM discovery_leads WHERE business_name = '" . escape($conn, $name) . "' LIMIT 1");
+                if ($check && $check->num_rows > 0) continue;
+
+                $escapedName = escape($conn, $name);
+                $webStatus = $hasWebsite ? 'active' : 'none';
+                $conn->query("INSERT INTO discovery_leads (business_name, website_url, website_status, status)
+                              VALUES ('$escapedName', '" . escape($conn, $href) . "', '$webStatus', 'new')");
+                $totalSaved++;
+                $items[] = ['business_name' => $name, 'website_status' => $webStatus];
+            }
+        }
+
         echo json_encode([
             'status' => 'success',
-            'message' => 'Discovery leads sync completed',
-            'discovered' => 0,
-            'total' => 0
+            'message' => "Discovery leads sync completed: $totalSaved new, $totalChecked websites checked",
+            'discovered' => $totalSaved,
+            'checked' => $totalChecked,
+            'items' => $items,
+        ]);
+    }
+    elseif ($action === "scrape") {
+        $url = $data['url'] ?? null;
+        $text = $data['text'] ?? null;
+        $keywords = $data['keywords'] ?? [];
+
+        if (!$url && !$text) {
+            throw new Exception("Provide a URL or text to scrape");
+        }
+        if (empty($keywords)) {
+            throw new Exception("Provide at least one keyword");
+        }
+
+        // Fetch content
+        $content = '';
+        $source = 'Manual input';
+
+        if ($url) {
+            $source = $url;
+            $html = null;
+
+            // Try cURL first, fallback to file_get_contents
+            if (function_exists('curl_init')) {
+                $ch = curl_init();
+                curl_setopt_array($ch, [
+                    CURLOPT_URL => $url,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_TIMEOUT => 30,
+                    CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_MAXFILESIZE => 524288,
+                ]);
+                $html = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+
+                if (!$html || $httpCode >= 400) {
+                    throw new Exception("Failed to fetch URL (HTTP $httpCode)");
+                }
+            } else {
+                $ctx = stream_context_create(['http' => [
+                    'timeout' => 30,
+                    'user_agent' => 'Mozilla/5.0',
+                ]]);
+                $html = @file_get_contents($url, false, $ctx);
+                if (!$html) {
+                    throw new Exception("Failed to fetch URL content");
+                }
+            }
+
+            // Strip script/style tags first, then HTML tags
+            $html = preg_replace('/<script[^>]*>.*?<\/script>/si', '', $html);
+            $html = preg_replace('/<style[^>]*>.*?<\/style>/si', '', $html);
+            $content = strip_tags($html);
+            $content = preg_replace('/\s+/', ' ', $content);
+            $content = trim($content);
+            $content = mb_substr($content, 0, 100000);
+        } else {
+            $content = $text;
+        }
+
+        if (empty(trim($content))) {
+            throw new Exception("No extractable content found");
+        }
+
+        // Split into sentences and search for keywords
+        $sentences = preg_split('/(?<=[.!?])\s+/', $content);
+        $items = [];
+        $seen = [];
+
+        foreach ($keywords as $keyword) {
+            $keyword = trim($keyword);
+            if (empty($keyword)) continue;
+
+            foreach ($sentences as $sentence) {
+                $sentence = trim($sentence);
+                if (strlen($sentence) < 10) continue;
+                if (stripos($sentence, $keyword) === false) continue;
+
+                // Truncate long snippets
+                $snippet = mb_substr($sentence, 0, 500);
+
+                // Deduplicate by normalized snippet
+                $normalized = preg_replace('/\s+/', ' ', mb_strtolower($snippet));
+                $fingerprint = md5($normalized);
+                if (isset($seen[$fingerprint])) continue;
+                $seen[$fingerprint] = true;
+
+                // Insert into database
+                $escapedSource = escape($conn, $source);
+                $escapedSnippet = escape($conn, $snippet);
+                $escapedUrl = escape($conn, $url ?? '');
+
+                $sql = "INSERT INTO opportunities (source, snippet, url) VALUES ('$escapedSource', '$escapedSnippet', '$escapedUrl')";
+                if ($conn->query($sql)) {
+                    $items[] = [
+                        'id' => (string)$conn->insert_id,
+                        'source' => $source,
+                        'snippet' => $snippet,
+                        'url' => $url,
+                        'createdAt' => date('c'),
+                    ];
+                }
+            }
+        }
+
+        echo json_encode([
+            'status' => 'success',
+            'items' => $items,
+            'count' => count($items),
         ]);
     }
     elseif ($action === "cleanup_duplicates") {

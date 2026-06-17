@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/ui/pagination";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api-client";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   RefreshCw,
   Mail,
@@ -106,11 +107,24 @@ export default function AdminContacts() {
         </div>
 
         {loading && (
-          <div className="flex justify-center items-center py-12 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-            <div className="text-muted-foreground text-center">
-              <div className="animate-spin mb-2 text-2xl">⚡</div>
-              Loading submissions...
-            </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-xl border p-5 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2 flex-1">
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-3 w-48" />
+                  </div>
+                  <Skeleton className="h-6 w-16 rounded-full" />
+                </div>
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+                <div className="flex gap-2 pt-2">
+                  <Skeleton className="h-8 w-20" />
+                  <Skeleton className="h-8 w-20" />
+                </div>
+              </div>
+            ))}
           </div>
         )}
 

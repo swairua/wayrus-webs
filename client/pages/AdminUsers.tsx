@@ -3,6 +3,7 @@ import AdminLayout from "@/components/layout/AdminLayout";
 import SEO from "@/components/SEO";
 import { Pagination } from "@/components/ui/pagination";
 import { Trash2, Plus, Mail, Lock, Users, X } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api-client";
 import {
@@ -170,10 +171,20 @@ export default function AdminUsers() {
           </div>
 
           {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="text-muted-foreground text-sm">
-                <div className="animate-spin mb-2 text-xl">⚡</div>
-                Loading users...
+            <div className="space-y-4">
+              <div className="border rounded-lg overflow-hidden">
+                <div className="bg-muted/30 p-4 border-b">
+                  <Skeleton className="h-5 w-40" />
+                </div>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="p-4 border-b last:border-0 flex items-center justify-between">
+                    <div className="space-y-2 flex-1 max-w-md">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
+                    <Skeleton className="h-8 w-16" />
+                  </div>
+                ))}
               </div>
             </div>
           ) : users.length === 0 ? (

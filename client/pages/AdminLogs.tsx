@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import AdminLayout from "@/components/layout/AdminLayout";
 import SEO from "@/components/SEO";
 import { Pagination } from "@/components/ui/pagination";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   RefreshCw,
   ExternalLink,
@@ -132,11 +133,17 @@ export default function AdminLogs() {
         )}
 
         {loading ? (
-          <div className="flex justify-center items-center py-12 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-            <div className="text-muted-foreground text-sm text-center">
-              <div className="animate-spin mb-2 text-2xl">⚡</div>
-              Loading logs...
+          <div className="border rounded-lg overflow-hidden">
+            <div className="bg-muted/30 p-4 border-b">
+              <Skeleton className="h-5 w-24" />
             </div>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="p-4 border-b last:border-0 flex items-center gap-4">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-4 flex-1" />
+              </div>
+            ))}
           </div>
         ) : allLogs.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">

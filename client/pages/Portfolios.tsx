@@ -4,7 +4,7 @@ import SEO from "@/components/SEO";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api-client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Globe, X, ArrowRight, CheckCircle } from "lucide-react";
+import { Globe, X, ArrowRight, CheckCircle, Loader2 } from "lucide-react";
 import { CardImage } from "@/components/ui/optimized-image";
 
 const containerVariants = {
@@ -498,7 +498,7 @@ export default function Portfolios() {
                       >
                         {isSubmitting ? (
                           <>
-                            <span className="animate-spin">⚡</span>
+                            <Loader2 className="w-4 h-4 animate-spin" />
                             Submitting...
                           </>
                         ) : (

@@ -87,7 +87,22 @@ export class APIClient {
         delete fetchOptions.body;
       }
     } else {
-      url = `${API_BASE_URL}?request=${path.startsWith("/") ? path.slice(1) : path}`;
+      const cleanPath = path.startsWith("/") ? path.slice(1) : path;
+      const urlObj = new URL(API_BASE_URL);
+
+      const queryIdx = cleanPath.indexOf("?");
+      if (queryIdx !== -1) {
+        urlObj.searchParams.set("request", cleanPath.substring(0, queryIdx));
+        const qs = cleanPath.substring(queryIdx + 1);
+        qs.split("&").forEach((pair) => {
+          const [k, v] = pair.split("=");
+          if (k) urlObj.searchParams.set(decodeURIComponent(k), decodeURIComponent(v || ""));
+        });
+      } else {
+        urlObj.searchParams.set("request", cleanPath);
+      }
+
+      url = urlObj.toString();
 
       fetchOptions.headers = {
         "Content-Type": "application/json",

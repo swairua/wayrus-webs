@@ -13,6 +13,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { Trash2, Plus, Edit2, RefreshCw } from "lucide-react";
 import { leadsAPI, Lead } from "@/lib/api/leads";
@@ -438,8 +439,20 @@ export default function AdminLeads() {
 
         {/* Leads Table */}
         {loading ? (
-          <div className="text-center py-8 text-muted-foreground">
-            Loading leads...
+          <div className="border rounded-lg overflow-hidden">
+            <div className="bg-muted/30 p-4 border-b">
+              <Skeleton className="h-5 w-32" />
+            </div>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="p-4 border-b last:border-0 flex items-center gap-4">
+                <div className="space-y-2 flex-1">
+                  <Skeleton className="h-4 w-48" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+                <Skeleton className="h-6 w-20 rounded-full" />
+                <Skeleton className="h-8 w-16" />
+              </div>
+            ))}
           </div>
         ) : leads.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
