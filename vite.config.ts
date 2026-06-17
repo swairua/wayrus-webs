@@ -8,13 +8,7 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 5173,
-    proxy: {
-      "/api.php": {
-        target: "https://wayrus.co.ke",
-        changeOrigin: true,
-        cookieDomainRewrite: "localhost",
-      },
-    },
+    proxy: {},
     fs: {
       allow: [".", "./client", "./shared"],
       deny: [".env", ".env.*", "*.{crt,pem}", "**/.git/**", "server/**"],

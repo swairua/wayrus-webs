@@ -1,13 +1,15 @@
 /**
  * API Configuration
- * All environments route requests through /api.php.
- * - Dev: Vite proxies /api.php to https://wayrus.co.ke/api.php
- * - Production (Apache): .htaccess rewrites /api/* to api.php?request=*
+ * Dev: calls remote server directly (CORS handled by server)
+ * Production (Apache): same-origin via /api.php
  *
  * All API calls go through the live server's api.php at wayrus.co.ke
  */
 
 function getApiBaseUrl(): string {
+  if (typeof window !== "undefined" && import.meta.env.DEV) {
+    return "https://wayrus.co.ke/api.php";
+  }
   return "/api.php";
 }
 
