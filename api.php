@@ -203,7 +203,7 @@ if ($request_param && !$action) {
                 $action = 'read';
                 // Parse query parameters for filtering
                 foreach ($_GET as $key => $value) {
-                    if ($key !== 'request' && $value) {
+                    if ($key !== 'request' && !in_array($key, ['page', 'pageSize', 'q', 'limit', 'offset', 'sort', 'order']) && $value) {
                         if (!is_array($where)) {
                             $where = [];
                         }
