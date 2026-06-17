@@ -11,7 +11,7 @@
     ]
   },
   "scripts": {
-    "dev": "concurrently \"node --import tsx server/dev.ts\" \"vite\"",
+    "dev": "vite",
     "dev:client": "vite",
     "dev:server": "node --import tsx server/dev.ts",
     "dev:php": "php -S localhost:8000",
