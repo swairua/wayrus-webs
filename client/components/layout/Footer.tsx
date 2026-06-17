@@ -1,7 +1,7 @@
 import { FormEvent, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Mail, Phone, MapPin, Zap, CheckCircle, Globe, ExternalLink } from "lucide-react";
+import { Mail, Phone, MapPin, Zap, CheckCircle, ExternalLink } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 
 const fadeUp = {
@@ -318,6 +318,7 @@ export default function Footer() {
                 { name: "Portfolio", link: "/portfolio" },
                 { name: "Contact", link: "/contact" },
                 { name: "Opportunities", link: "/opportunities" },
+                { name: isAdmin ? "Admin Panel" : "Admin Login", link: isAdmin ? "/admin/users" : "/admin/login" },
               ].map((item) => (
                 <li key={item.name}>
                   <Link
@@ -376,7 +377,7 @@ export default function Footer() {
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-slate-200/50 dark:border-slate-700/50 relative z-10 bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-950 dark:to-slate-900">
+      <div className="border-t border-slate-200/50 dark:border-slate-700/50 relative z-10 bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900">
         <motion.div
           initial="hidden"
           whileInView="show"
@@ -386,7 +387,7 @@ export default function Footer() {
         >
           <motion.p
             variants={fadeUp}
-            className="text-xs sm:text-sm text-yellow-500 dark:text-yellow-400 text-center sm:text-left font-semibold"
+            className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 text-center sm:text-left"
           >
             © {new Date().getFullYear()} Wayrus Business Solutions Ltd. All
             rights reserved.
@@ -395,7 +396,7 @@ export default function Footer() {
             {isAdmin ? (
               <Link
                 to="/admin/users"
-                className="text-xs sm:text-sm text-yellow-500 dark:text-yellow-400 hover:text-yellow-300 transition-colors font-medium hover:underline flex items-center gap-1"
+                className="text-xs sm:text-sm text-primary hover:text-primary/80 transition-colors font-medium hover:underline flex items-center gap-1"
               >
                 <ExternalLink className="w-3 h-3" />
                 Admin Panel
@@ -403,22 +404,22 @@ export default function Footer() {
             ) : (
               <Link
                 to="/admin/login"
-                className="text-xs sm:text-sm text-yellow-500 dark:text-yellow-400 hover:text-yellow-300 transition-colors font-medium hover:underline"
+                className="text-xs sm:text-sm text-primary hover:text-primary/80 transition-colors font-medium hover:underline"
               >
                 Admin Login
               </Link>
             )}
-            <span className="text-xs text-yellow-600/50 dark:text-yellow-500/50">|</span>
+            <span className="text-xs text-slate-300 dark:text-slate-600">|</span>
             <Link
               to="/privacy"
-              className="text-xs sm:text-sm text-yellow-500 dark:text-yellow-400 hover:text-yellow-300 transition-colors font-medium hover:underline"
+              className="text-xs sm:text-sm text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors"
             >
               Privacy
             </Link>
-            <span className="text-xs text-yellow-600/50 dark:text-yellow-500/50">|</span>
+            <span className="text-xs text-slate-300 dark:text-slate-600">|</span>
             <Link
               to="/terms"
-              className="text-xs sm:text-sm text-yellow-500 dark:text-yellow-400 hover:text-yellow-300 transition-colors font-medium hover:underline"
+              className="text-xs sm:text-sm text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors"
             >
               Terms
             </Link>
