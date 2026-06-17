@@ -1,0 +1,139 @@
+# Apache Web Server Configuration for wayrus.co.ke
+# Handles API rewriting, SPA routing, HTTPS, and optimization
+
+# Enable mod_rewrite
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Remove trailing slashes (except for directories)
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.+)/$ /$1 [L,R=301]
+
+    # API Rewrite: Route /api/* to api.php with request parameter
+    # This converts REST-style calls to PHP action handlers
+    # Example: /api/leads -> api.php?request=leads
+    RewriteRule ^api/(.*)$ api.php?request=$1 [QSA,L]
+
+    # SPA Fallback: Route non-existent files/directories to index.html
+    # This allows React Router to handle all route paths
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} !^/api/
+    RewriteCond %{REQUEST_URI} !^/uploads/
+    RewriteRule ^ index.html [QSA,L]
+</IfModule>
+
+# Enforce HTTPS redirect (wayrus.co.ke)
+<IfModule mod_rewrite.c>
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP_HOST} ^wayrus\.co\.ke$ [NC]
+    RewriteRule ^(.*)$ https://wayrus.co.ke/$1 [R=301,L]
+</IfModule>
+
+# Set proper MIME types
+<IfModule mod_mime.c>
+    AddType application/javascript js mjs
+    AddType application/wasm wasm
+    AddType image/svg+xml svg svgz
+    AddEncoding gzip svgz
+    AddType application/manifest+json webmanifest
+    AddType application/x-web-app-manifest+json webapp
+</IfModule>
+
+# Enable GZIP compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+    AddOutputFilterByType DEFLATE image/svg+xml
+    AddOutputFilterByType DEFLATE application/wasm
+</IfModule>
+
+# Browser caching
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault "access plus 1 month"
+    
+    # HTML (cache validation)
+    ExpiresByType text/html "access plus 1 hour"
+    
+    # CSS & JS (long-term cache)
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType application/json "access plus 1 month"
+    
+    # Images (long-term cache)
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType image/x-icon "access plus 1 year"
+    
+    # Fonts (long-term cache)
+    ExpiresByType font/ttf "access plus 1 year"
+    ExpiresByType font/otf "access plus 1 year"
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType application/font-woff "access plus 1 year"
+</IfModule>
+
+# Cache control headers
+<IfModule mod_headers.c>
+    # HTML - Don't cache
+    <FilesMatch "\.(html)$">
+        Header set Cache-Control "public, max-age=3600, must-revalidate"
+        Header set X-Content-Type-Options "nosniff"
+    </FilesMatch>
+    
+    # Assets with hash - Cache forever
+    <FilesMatch "\.([0-9a-z]{8})\.(js|css|wasm)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+    
+    # API responses - No cache
+    <FilesMatch "api\.php$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+    
+    # Security headers
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-Content-Type-Options "nosniff"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Disable directory listing
+Options -Indexes
+
+# Protect sensitive files
+<FilesMatch "^(\.env|\.env\.production|\.git|\.gitignore|package\.json|package-lock\.json|pnpm-lock\.yaml|README\.md|AGENTS\.md)">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Prevent access to hidden files and directories
+<FilesMatch "^\.">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Allow access to public directories
+<Directory /home/wayrusc1/public_html>
+    <IfModule mod_rewrite.c>
+        RewriteEngine On
+    </IfModule>
+    Allow from all
+</Directory>
+
+# Allow access to uploads
+<Directory /home/wayrusc1/public_html/uploads>
+    Order Allow,Deny
+    Allow from all
+</Directory>
+
+# Prevent PHP execution in uploads directory (security)
+<Directory /home/wayrusc1/public_html/uploads>
+    php_flag engine off
+    AddType text/plain .php .php3 .php4 .php5 .phtml
+</Directory>
