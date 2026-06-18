@@ -7,13 +7,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api-client";
 import {
-  Plus,
-  Trash2,
-  ExternalLink,
-  Check,
-  Clock,
-  AlertCircle,
-} from "lucide-react";
+    Plus,
+    Trash2,
+    ExternalLink,
+    Check,
+    Clock,
+    AlertCircle,
+    Image,
+    Loader2,
+  } from "lucide-react";
 
 interface Portfolio {
   id: number;
@@ -35,6 +37,7 @@ export default function AdminPortfolios() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [capturingId, setCapturingId] = useState<number | null>(null);
 
   async function loadPortfolios() {
     setLoading(true);
@@ -80,6 +83,28 @@ export default function AdminPortfolios() {
       toast.error(
         e instanceof Error ? e.message : "Failed to delete portfolio",
       );
+    }
+  }
+
+  async function handleCapturePreview(id: number) {
+    setCapturingId(id);
+    try {
+      const response = await apiClient.post(
+        `/portfolios/capture-preview/${id}`,
+        {},
+      );
+      if (response.status === "success") {
+        toast.success("Preview captured successfully!");
+        loadPortfolios();
+      } else {
+        toast.error("Failed to capture preview");
+      }
+    } catch (e) {
+      toast.error(
+        e instanceof Error ? e.message : "Failed to capture preview",
+      );
+    } finally {
+      setCapturingId(null);
     }
   }
 
@@ -247,6 +272,20 @@ export default function AdminPortfolios() {
                   </div>
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
+                  <Button
+                    onClick={() => handleCapturePreview(portfolio.id)}
+                    disabled={capturingId === portfolio.id}
+                    variant="outline"
+                    size="sm"
+                    className="hover:bg-primary/10 border-primary/30 hover:border-primary"
+                    title="Capture website preview screenshot"
+                  >
+                    {capturingId === portfolio.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Image className="w-4 h-4" />
+                    )}
+                  </Button>
                   <Button
                     onClick={() => handleDelete(portfolio.id)}
                     variant="outline"
