@@ -1,5 +1,6 @@
 <?php
-// Load .env file if it exists
+// Load .env file if it exists (optional, for other services)
+// Database and screenshot credentials are hardcoded below
 if (file_exists(__DIR__ . '/.env')) {
     $env_file = file_get_contents(__DIR__ . '/.env');
     $lines = explode("\n", $env_file);
@@ -29,11 +30,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-// Database Configuration
-$db_host = $_ENV['DB_HOST'] ?? 'localhost';
-$db_user = $_ENV['DB_USER'] ?? 'wayrusc1_webuser';
-$db_pass = $_ENV['DB_PASS'] ?? 'Sirgeorge.12';
-$db_name = $_ENV['DB_NAME'] ?? 'wayrusc1_webdb';
+// Database Configuration - hardcoded credentials
+$db_host = 'localhost';
+$db_user = 'wayrusc1_webuser';
+$db_pass = 'Sirgeorge.12';
+$db_name = 'wayrusc1_webdb';
 
 // Create connection
 $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
@@ -270,25 +271,69 @@ function ensureTables($conn) {
 
 ensureTables($conn);
 
-// Helper function to capture portfolio screenshot via urlbox
+// Helper function to capture portfolio screenshot using Puppeteer subprocess
 function capturePortfolioScreenshot($website_url) {
-    $api_key = getenv('SCREENSHOT_SERVICE_API_KEY');
-
-    if (empty($api_key)) {
-        error_log("SCREENSHOT_SERVICE_API_KEY not configured");
+    // Validate URL format
+    if (!filter_var($website_url, FILTER_VALIDATE_URL)) {
+        error_log("Invalid website URL: $website_url");
         return null;
     }
 
-    // Use urlbox API to capture screenshot
-    // API: https://api.urlbox.io/v1/{api_key}/render?url={url}&format=jpg&width=1024&height=768&full_page=false
+    // Ensure /screenshots directory exists
+    $screenshots_dir = __DIR__ . '/screenshots';
+    if (!is_dir($screenshots_dir)) {
+        if (!mkdir($screenshots_dir, 0755, true)) {
+            error_log("Failed to create /screenshots directory");
+            return null;
+        }
+    }
 
-    $encoded_url = urlencode($website_url);
-    $screenshot_url = "https://api.urlbox.io/v1/{$api_key}/render?url={$encoded_url}&format=jpg&width=1024&height=768&full_page=false";
+    // Generate unique filename based on URL hash
+    $url_hash = md5($website_url);
+    $filename = "portfolio-{$url_hash}.jpg";
+    $output_path = "{$screenshots_dir}/{$filename}";
 
-    error_log("Generated screenshot URL for: $website_url");
+    // Build command to run Node.js script
+    // Hardcoded path: node scripts/capture-screenshot.js
+    $node_script = __DIR__ . '/scripts/capture-screenshot.js';
 
-    // Return the screenshot URL (urlbox provides direct image URL)
-    return $screenshot_url;
+    if (!file_exists($node_script)) {
+        error_log("Screenshot script not found: $node_script");
+        return null;
+    }
+
+    // Escape URL for shell command
+    $escaped_url = escapeshellarg($website_url);
+    $escaped_output = escapeshellarg($output_path);
+
+    // Run Puppeteer subprocess with output capture
+    $command = "node {$node_script} {$escaped_url} {$escaped_output} 2>&1";
+
+    error_log("Executing screenshot capture: $command");
+
+    $output = [];
+    $return_code = 0;
+    exec($command, $output, $return_code);
+
+    $output_text = implode("\n", $output);
+    error_log("Screenshot subprocess output: $output_text (code: $return_code)");
+
+    if ($return_code !== 0) {
+        error_log("Screenshot capture failed for: $website_url");
+        return null;
+    }
+
+    // Check if file was created
+    if (!file_exists($output_path)) {
+        error_log("Screenshot file not created at: $output_path");
+        return null;
+    }
+
+    // Return relative path to screenshot file
+    $relative_path = "/screenshots/{$filename}";
+    error_log("Screenshot captured successfully: $relative_path");
+
+    return $relative_path;
 }
 
 try {
@@ -336,7 +381,8 @@ try {
 
     // Helper function to create JWT token
     function createJWT($user_id, $user_email, $user_role) {
-        $secret = $_ENV['JWT_SECRET'] ?? 'wayrus-secret-key-2024';
+        // Hardcoded JWT secret
+        $secret = 'wayrus-secret-key-2024';
         $header = base64_encode(json_encode(['typ' => 'JWT', 'alg' => 'HS256']));
         $payload = base64_encode(json_encode([
             'sub' => $user_id,
@@ -352,7 +398,8 @@ try {
     // Helper function to verify JWT token
     function verifyJWT($token) {
         if (!$token) return null;
-        $secret = $_ENV['JWT_SECRET'] ?? 'wayrus-secret-key-2024';
+        // Hardcoded JWT secret
+        $secret = 'wayrus-secret-key-2024';
         $parts = explode('.', $token);
         if (count($parts) !== 3) return null;
 
