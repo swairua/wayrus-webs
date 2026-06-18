@@ -139,12 +139,10 @@ export default function AdminUsers() {
                 View Logs
               </a>
               <a
-                href="/api.php?action=logs"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/admin/logs"
                 className="px-3 py-2 text-sm text-foreground hover:text-primary transition-colors"
               >
-                External Logs
+                View All Logs
               </a>
               <button
                 onClick={logout}
