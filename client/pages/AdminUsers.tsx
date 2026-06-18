@@ -139,7 +139,7 @@ export default function AdminUsers() {
                 View Logs
               </a>
               <a
-                href="https://wayrus.co.ke/api.php?action=logs"
+                href="/api.php?action=logs"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-3 py-2 text-sm text-foreground hover:text-primary transition-colors"

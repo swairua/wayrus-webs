@@ -1,19 +1,4 @@
-/**
- * API Configuration
- * Dev: calls remote server directly (CORS handled by server)
- * Production (Apache): same-origin via /api.php
- *
- * All API calls go through the live server's api.php at wayrus.co.ke
- */
-
-function getApiBaseUrl(): string {
-  if (typeof window !== "undefined" && import.meta.env.DEV) {
-    return "https://wayrus.co.ke/api.php";
-  }
-  return "/api.php";
-}
-
-export const API_BASE_URL = getApiBaseUrl();
+export const API_BASE_URL = "/api.php";
 
 /**
  * Build query parameters for API calls
