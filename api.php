@@ -187,6 +187,13 @@ if ($request_param && !$action) {
                 $table = 'web_app_leads';
             }
         }
+        // Handle portfolio capture-preview endpoint
+        elseif (count($segments) >= 2 && $segments[0] === 'portfolios' && $segments[1] === 'capture-preview') {
+            $action = 'capture_portfolio_preview';
+            if (count($segments) >= 3 && is_numeric($segments[2])) {
+                $portfolio_id = $segments[2];
+            }
+        }
         // Handle /scrape endpoint
         elseif ($segments[0] === 'scrape' && $method === 'POST') {
             $action = 'scrape';
@@ -262,6 +269,27 @@ function ensureTables($conn) {
 }
 
 ensureTables($conn);
+
+// Helper function to capture portfolio screenshot via urlbox
+function capturePortfolioScreenshot($website_url) {
+    $api_key = getenv('SCREENSHOT_SERVICE_API_KEY');
+
+    if (empty($api_key)) {
+        error_log("SCREENSHOT_SERVICE_API_KEY not configured");
+        return null;
+    }
+
+    // Use urlbox API to capture screenshot
+    // API: https://api.urlbox.io/v1/{api_key}/render?url={url}&format=jpg&width=1024&height=768&full_page=false
+
+    $encoded_url = urlencode($website_url);
+    $screenshot_url = "https://api.urlbox.io/v1/{$api_key}/render?url={$encoded_url}&format=jpg&width=1024&height=768&full_page=false";
+
+    error_log("Generated screenshot URL for: $website_url");
+
+    // Return the screenshot URL (urlbox provides direct image URL)
+    return $screenshot_url;
+}
 
 try {
     // Setup endpoint - create admin user
@@ -450,11 +478,32 @@ try {
             throw new Exception("Insert failed: " . $conn->error);
         }
 
+        $insert_id = $conn->insert_id;
+        $response_data = array_merge($data, ['id' => $insert_id]);
+
+        // Auto-trigger screenshot capture for portfolios
+        if ($table === 'portfolios' && !empty($data['website_url'])) {
+            try {
+                $screenshot_url = capturePortfolioScreenshot($data['website_url']);
+                if ($screenshot_url) {
+                    $screenshot_url_escaped = escape($conn, $screenshot_url);
+                    $update_sql = "UPDATE portfolios SET screenshot_url = '$screenshot_url_escaped', status = 'active' WHERE id = $insert_id";
+                    if ($conn->query($update_sql)) {
+                        $response_data['screenshot_url'] = $screenshot_url;
+                        error_log("Screenshot captured automatically for portfolio $insert_id");
+                    }
+                }
+            } catch (Exception $e) {
+                error_log("Failed to auto-capture screenshot: " . $e->getMessage());
+                // Don't fail the portfolio creation if screenshot capture fails
+            }
+        }
+
         echo json_encode([
             'status' => 'success',
             'message' => 'Record created',
-            'id' => $conn->insert_id,
-            'data' => array_merge($data, ['id' => $conn->insert_id])
+            'id' => $insert_id,
+            'data' => $response_data
         ]);
     }
     elseif ($action === "read") {
@@ -827,6 +876,61 @@ try {
             'discovered' => $totalSaved,
             'checked' => $totalChecked,
             'items' => $items,
+        ]);
+    }
+    elseif ($action === "capture_portfolio_preview") {
+        if (!isset($portfolio_id)) {
+            // Try to get portfolio_id from JSON body
+            $portfolio_id = $json_body['portfolio_id'] ?? $data['portfolio_id'] ?? null;
+        }
+
+        if (!$portfolio_id) {
+            throw new Exception("Missing portfolio_id");
+        }
+
+        // Fetch portfolio from database
+        $portfolio_id = (int)$portfolio_id;
+        $sql = "SELECT id, website_url FROM portfolios WHERE id = $portfolio_id LIMIT 1";
+        $result = $conn->query($sql);
+
+        if (!$result || $result->num_rows === 0) {
+            http_response_code(404);
+            throw new Exception("Portfolio not found");
+        }
+
+        $portfolio = $result->fetch_assoc();
+        $website_url = $portfolio['website_url'];
+
+        if (!$website_url) {
+            throw new Exception("Portfolio has no website URL");
+        }
+
+        // Validate and sanitize URL
+        if (!filter_var($website_url, FILTER_VALIDATE_URL)) {
+            throw new Exception("Invalid website URL");
+        }
+
+        // Capture screenshot
+        $screenshot_url = capturePortfolioScreenshot($website_url);
+
+        if (!$screenshot_url) {
+            throw new Exception("Failed to capture screenshot");
+        }
+
+        // Update portfolio with screenshot URL
+        $screenshot_url_escaped = escape($conn, $screenshot_url);
+        $update_sql = "UPDATE portfolios SET screenshot_url = '$screenshot_url_escaped', status = 'active' WHERE id = $portfolio_id";
+
+        if (!$conn->query($update_sql)) {
+            error_log("Failed to update portfolio screenshot: " . $conn->error);
+            throw new Exception("Failed to update portfolio");
+        }
+
+        echo json_encode([
+            'status' => 'success',
+            'message' => 'Screenshot captured successfully',
+            'id' => $portfolio_id,
+            'screenshot_url' => $screenshot_url
         ]);
     }
     elseif ($action === "scrape") {
