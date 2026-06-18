@@ -88,7 +88,7 @@ export class APIClient {
       }
     } else {
       const cleanPath = path.startsWith("/") ? path.slice(1) : path;
-      const urlObj = new URL(API_BASE_URL);
+      const urlObj = new URL(API_BASE_URL, window.location.origin);
 
       const queryIdx = cleanPath.indexOf("?");
       if (queryIdx !== -1) {
