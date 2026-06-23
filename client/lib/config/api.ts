@@ -1,4 +1,4 @@
-export const API_BASE_URL = "/api.php";
+export const API_BASE_URL = "https://wayrus.co.ke/api.php";
 
 /**
  * Build query parameters for API calls
