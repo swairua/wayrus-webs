@@ -27,6 +27,7 @@ export default function SEO({
   viewport = "width=device-width, initial-scale=1.0",
   twitterCard = "summary_large_image",
   twitterCreator = "@wayrus_solutions",
+  extraSchemas,
 }: SEOProps) {
   useEffect(() => {
     // Set page title
