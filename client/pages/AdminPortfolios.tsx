@@ -114,7 +114,7 @@ export default function AdminPortfolios() {
 
   return (
     <AdminLayout>
-      <SEO title="Admin – Portfolios" />
+      <SEO title="Admin – Portfolios" description="Manage portfolio projects, website screenshots, and client work samples." robots="noindex" />
       <section className="container py-12">
         <div className="mb-8">
           <div className="flex items-center justify-between gap-4">

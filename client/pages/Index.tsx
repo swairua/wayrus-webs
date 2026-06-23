@@ -396,7 +396,7 @@ export default function Index() {
                     variants={fadeUp}
                     whileHover={{ y: -8, transition: { duration: 0.2 } }}
                   >
-                    <Link to="/portfolio" className="group block h-full">
+                    <article className="group block h-full">
                       <div
                         className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${bgGradient} h-full flex flex-col transition-all duration-300`}
                       >
@@ -443,7 +443,7 @@ export default function Index() {
                           className={`absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r ${gradient} transition-all duration-500 group-hover:w-full`}
                         />
                       </div>
-                    </Link>
+                    </article>
                   </motion.div>
                 );
               })}

@@ -89,7 +89,7 @@ export default function AdminContacts() {
 
   return (
     <AdminLayout>
-      <SEO title="Admin – Contacts" />
+      <SEO title="Admin – Contacts" description="Manage contact form submissions from website visitors." robots="noindex" />
       <section className="space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>

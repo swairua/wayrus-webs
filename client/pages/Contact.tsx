@@ -135,7 +135,16 @@ export default function Contact() {
 
   return (
     <Layout>
-      <SEO title="Contact – Wayrus Business Solutions Ltd" />
+      <SEO title="Contact – Wayrus Business Solutions Ltd" description="Get in touch with Wayrus Business Solutions for web design, mobile app development, ERP, SaaS, and custom software projects in Kenya." extraSchemas={[{
+          "@context": "https://schema.org",
+          "@type": "LocalBusiness",
+          "name": "Wayrus Business Solutions Ltd",
+          "url": "https://wayrus.co.ke",
+          "email": "info@wayrus.co.ke",
+          "telephone": "+254108316608",
+          "areaServed": ["KE", "East Africa"],
+          "contactType": "Customer Service"
+        }]} />
 
       <section className="relative min-h-screen py-12 sm:py-20">
         {/* Decorative blobs */}
@@ -521,12 +530,15 @@ export default function Contact() {
           </motion.div>
 
           {/* Contact Info Cards */}
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-center mt-16 mb-8">
+            Contact Information
+          </h2>
           <motion.div
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, amount: 0.2, margin: "0px 0px -100px 0px" }}
             variants={containerVariants}
-            className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-12 sm:mt-16"
+            className="grid grid-cols-1 sm:grid-cols-3 gap-6"
           >
             {contactInfo.map((info, idx) => {
               const Icon = info.icon;

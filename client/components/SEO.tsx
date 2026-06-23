@@ -12,6 +12,7 @@ interface SEOProps {
   viewport?: string;
   twitterCard?: string;
   twitterCreator?: string;
+  extraSchemas?: Record<string, any>[];
 }
 
 export default function SEO({
@@ -78,8 +79,11 @@ export default function SEO({
       link.setAttribute("href", canonical);
     }
 
-    // Set JSON-LD structured data
-    const structuredData = {
+    // Remove existing JSON-LD scripts
+    document.querySelectorAll('script[type="application/ld+json"]').forEach((el) => el.remove());
+
+    // Inject Organization schema (base)
+    const orgSchema = {
       "@context": "https://schema.org",
       "@type": "Organization",
       name: "Wayrus Business Solutions Ltd",
@@ -105,20 +109,24 @@ export default function SEO({
       ],
     };
 
-    let ldJsonScript = document.querySelector(
-      'script[type="application/ld+json"]',
-    );
-    if (!ldJsonScript) {
-      ldJsonScript = document.createElement("script");
-      ldJsonScript.setAttribute("type", "application/ld+json");
-      document.head.appendChild(ldJsonScript);
+    const injectScript = (data: Record<string, any>) => {
+      const script = document.createElement("script");
+      script.setAttribute("type", "application/ld+json");
+      script.textContent = JSON.stringify(data);
+      document.head.appendChild(script);
+    };
+
+    injectScript(orgSchema);
+
+    // Inject page-specific schemas
+    if (extraSchemas && extraSchemas.length > 0) {
+      extraSchemas.forEach((s) => injectScript(s));
     }
-    ldJsonScript.textContent = JSON.stringify(structuredData);
 
     return () => {
       // Cleanup is optional since meta tags will be replaced on route change
     };
-  }, [title, description, keywords, image, canonical, author, robots, type]);
+  }, [title, description, keywords, image, canonical, author, robots, type, extraSchemas]);
 
   return null;
 }

@@ -59,7 +59,7 @@ export default function AdminLogin() {
   if (checking) {
     return (
       <Layout>
-        <SEO title="Admin Login – Wayrus" />
+        <SEO title="Admin Login – Wayrus" description="Secure admin sign-in for Wayrus Business Solutions management dashboard." robots="noindex" />
         <div className="min-h-[70vh] flex items-center justify-center">
           <div className="space-y-4 w-80">
             <Skeleton className="h-8 w-48 mx-auto" />
@@ -75,7 +75,7 @@ export default function AdminLogin() {
   if (isLoggedIn) {
     return (
       <Layout>
-        <SEO title="Admin Login – Wayrus" />
+        <SEO title="Admin Login – Wayrus" description="Secure admin sign-in for Wayrus Business Solutions management dashboard." robots="noindex" />
         <div className="min-h-[70vh] flex items-center justify-center">
           <div className="text-center text-muted-foreground space-y-3">
             <Skeleton className="h-6 w-56 mx-auto" />
@@ -88,7 +88,7 @@ export default function AdminLogin() {
 
   return (
     <Layout>
-      <SEO title="Admin Login – Wayrus" />
+      <SEO title="Admin Login – Wayrus" description="Secure admin sign-in for Wayrus Business Solutions management dashboard." robots="noindex" />
       <div className="min-h-[80vh] flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-slate-900 via-primary/95 to-slate-900">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-secondary/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/20 rounded-full blur-3xl pointer-events-none" />

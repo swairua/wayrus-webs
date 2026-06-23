@@ -91,7 +91,7 @@ export default function AdminQuotations() {
 
   return (
     <AdminLayout>
-      <SEO title="Admin – Quotations" />
+      <SEO title="Admin – Quotations" description="Manage customer quotation requests and project inquiries." robots="noindex" />
       <section className="container py-12">
         <div className="mb-8">
           <div className="flex items-center justify-between gap-4">

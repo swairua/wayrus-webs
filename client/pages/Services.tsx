@@ -80,7 +80,20 @@ export default function Services() {
 
   return (
     <Layout>
-      <SEO title="Services – Wayrus Business Solutions Ltd" />
+      <SEO title="Services – Wayrus Business Solutions Ltd" description="Web design, mobile app development, ERP systems, SaaS, custom software, and specialized enterprise solutions by Wayrus Business Solutions in Kenya." extraSchemas={[{
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          "itemListElement": services.map((s, i) => ({
+            "@type": "Service",
+            "position": i + 1,
+            "name": s.title,
+            "description": s.desc,
+            "provider": {
+              "@type": "Organization",
+              "name": "Wayrus Business Solutions Ltd"
+            }
+          }))
+        }]} />
 
       {/* Hero Section */}
       <section className="relative overflow-hidden py-16 sm:py-24">
@@ -113,6 +126,9 @@ export default function Services() {
 
       {/* Services Grid */}
       <section className="container py-8 sm:py-12">
+        <h2 className="text-3xl sm:text-4xl font-extrabold text-center mb-10">
+          What We Offer
+        </h2>
         <motion.div
           initial="hidden"
           whileInView="show"
@@ -184,12 +200,12 @@ export default function Services() {
           <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
 
           <div className="relative z-10">
-            <motion.h3
+            <motion.h2
               variants={fadeUp}
               className="text-3xl sm:text-4xl font-extrabold text-white"
             >
               Need guidance choosing?
-            </motion.h3>
+            </motion.h2>
             <motion.p
               variants={fadeUp}
               className="mt-3 text-lg text-white/80 max-w-xl mx-auto"
@@ -223,12 +239,12 @@ export default function Services() {
           viewport={{ once: true, amount: 0.3, margin: "0px 0px -100px 0px" }}
           className="text-center"
         >
-          <motion.h3
+          <motion.h2
             variants={fadeUp}
             className="text-2xl sm:text-3xl font-bold mb-4"
           >
             Why choose Wayrus?
-          </motion.h3>
+          </motion.h2>
           <motion.div
             variants={fadeUp}
             className="grid gap-4 sm:gap-6 md:grid-cols-3 mt-8"

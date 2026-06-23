@@ -61,7 +61,7 @@ const sections = [
 export default function Terms() {
   return (
     <Layout>
-      <SEO title="Terms of Service – Wayrus" />
+      <SEO title="Terms of Service – Wayrus" description="Terms of Service for Wayrus Business Solutions Ltd. Read our policies on use license, disclaimers, limitations, and governing law." />
       <section className="relative overflow-hidden py-16 sm:py-24">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-secondary/10 rounded-full blur-3xl pointer-events-none" />

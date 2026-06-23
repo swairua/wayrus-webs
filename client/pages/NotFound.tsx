@@ -2,6 +2,7 @@ import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import Layout from "@/components/layout/Layout";
+import SEO from "@/components/SEO";
 import { Home } from "lucide-react";
 
 const NotFound = () => {
@@ -16,6 +17,7 @@ const NotFound = () => {
 
   return (
     <Layout>
+      <SEO title="404 – Page Not Found | Wayrus" robots="noindex" />
       <div className="min-h-[70vh] flex items-center justify-center relative overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-secondary/10 rounded-full blur-3xl pointer-events-none" />

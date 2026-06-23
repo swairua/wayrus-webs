@@ -124,7 +124,7 @@ export default function AdminOpportunities() {
 
   return (
     <AdminLayout>
-      <SEO title="Admin – Opportunities" />
+      <SEO title="Admin – Opportunities" description="Manage scraped business opportunities and market leads from various sources." robots="noindex" />
       <section className="space-y-6">
         <div className="mb-8">
           <div className="flex items-center justify-between gap-4 mb-4">

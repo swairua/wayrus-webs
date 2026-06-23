@@ -189,7 +189,7 @@ export default function AdminLeads() {
 
   return (
     <AdminLayout>
-      <SEO title="Leads Management" description="Manage business leads" />
+      <SEO title="Leads Management" description="Manage incoming business leads, prospects, and customer inquiries." robots="noindex" />
 
       <div className="space-y-6">
         {/* Header */}

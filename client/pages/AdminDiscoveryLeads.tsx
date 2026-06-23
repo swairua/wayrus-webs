@@ -187,7 +187,7 @@ export default function AdminDiscoveryLeads() {
 
   return (
     <AdminLayout>
-      <SEO title="Lead Discovery & Tracking" />
+      <SEO title="Lead Discovery & Tracking" description="Discover and track businesses with no website or broken websites for outreach." robots="noindex" />
 
       <div className="space-y-6">
         {/* Header */}

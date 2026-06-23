@@ -134,7 +134,12 @@ export default function Portfolios() {
 
   return (
     <Layout>
-      <SEO title="Portfolios – Wayrus Business Solutions Ltd" />
+      <SEO title="Portfolios – Wayrus Business Solutions Ltd" description="Explore our portfolio of web design, mobile app, and custom software development projects by Wayrus Business Solutions." extraSchemas={[{
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          "name": "Our Portfolio",
+          "description": "Explore our portfolio of web design, mobile app, and custom software development projects."
+        }]} />
 
       {/* Hero Section */}
       <section className="relative overflow-hidden py-16 sm:py-24">
@@ -215,8 +220,8 @@ export default function Portfolios() {
                   key={portfolio.id}
                   variants={fadeUp}
                   whileHover={{ y: -8 }}
-                  className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${bgGradientColor} transition-all duration-300 flex flex-col h-full`}
                 >
+                  <article className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${bgGradientColor} transition-all duration-300 flex flex-col h-full`}>
                   {/* Image Container */}
                   <a
                     href={portfolio.website_url}
@@ -286,6 +291,7 @@ export default function Portfolios() {
                   <div
                     className={`absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r ${gradientColor} transition-all duration-500 group-hover:w-full`}
                   />
+                </article>
                 </motion.div>
               );
             })}

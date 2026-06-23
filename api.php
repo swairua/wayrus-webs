@@ -199,6 +199,10 @@ if ($request_param && !$action) {
         elseif ($segments[0] === 'scrape' && $method === 'POST') {
             $action = 'scrape';
         }
+        // Handle sitemap.xml
+        elseif ($segments[0] === 'sitemap.xml') {
+            $action = 'sitemap';
+        }
         // Handle table CRUD routes (leads, contacts, quotations, portfolios, etc.)
         elseif (in_array($segments[0], ['leads', 'contacts', 'quotations', 'portfolios', 'web_app_leads', 'web-leads', 'opportunities', 'discovery-leads', 'discovery_leads', 'logs'])) {
             $table_name = $segments[0];
@@ -1091,6 +1095,51 @@ try {
             'items' => $items,
             'count' => count($items),
         ]);
+    }
+    elseif ($action === "sitemap") {
+        header("Content-Type: application/xml; charset=utf-8");
+
+        $staticRoutes = [
+            '/' => ['priority' => '1.0', 'changefreq' => 'weekly'],
+            '/services' => ['priority' => '0.9', 'changefreq' => 'monthly'],
+            '/portfolios' => ['priority' => '0.8', 'changefreq' => 'weekly'],
+            '/contact' => ['priority' => '0.7', 'changefreq' => 'monthly'],
+            '/opportunities' => ['priority' => '0.6', 'changefreq' => 'weekly'],
+            '/terms' => ['priority' => '0.3', 'changefreq' => 'yearly'],
+            '/privacy' => ['priority' => '0.3', 'changefreq' => 'yearly'],
+            '/cookies' => ['priority' => '0.3', 'changefreq' => 'yearly'],
+            '/sitemap' => ['priority' => '0.4', 'changefreq' => 'monthly'],
+        ];
+
+        $urls = '';
+        $baseUrl = 'https://wayrus.co.ke';
+
+        foreach ($staticRoutes as $path => $meta) {
+            $urls .= "  <url>\n";
+            $urls .= "    <loc>{$baseUrl}{$path}</loc>\n";
+            $urls .= "    <priority>{$meta['priority']}</priority>\n";
+            $urls .= "    <changefreq>{$meta['changefreq']}</changefreq>\n";
+            $urls .= "  </url>\n";
+        }
+
+        // Add dynamic portfolio URLs
+        $portfolioResult = $conn->query("SELECT id, title, created_at FROM portfolios WHERE status='active' ORDER BY id DESC");
+        if ($portfolioResult && $portfolioResult->num_rows > 0) {
+            while ($row = $portfolioResult->fetch_assoc()) {
+                $urls .= "  <url>\n";
+                $urls .= "    <loc>{$baseUrl}/portfolios</loc>\n";
+                $urls .= "    <lastmod>" . date('Y-m-d', strtotime($row['created_at'])) . "</lastmod>\n";
+                $urls .= "    <priority>0.7</priority>\n";
+                $urls .= "    <changefreq>monthly</changefreq>\n";
+                $urls .= "  </url>\n";
+            }
+        }
+
+        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+        echo $urls;
+        echo '</urlset>' . "\n";
+        exit;
     }
     elseif ($action === "cleanup_duplicates") {
         // Cleanup duplicates in web_app_leads

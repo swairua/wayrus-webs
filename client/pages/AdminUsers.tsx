@@ -115,7 +115,7 @@ export default function AdminUsers() {
 
   return (
     <AdminLayout>
-      <SEO title="Admin – Users" />
+      <SEO title="Admin – Users" description="Manage website administrators and editors for the Wayrus platform." robots="noindex" />
       <section className="container py-8">
         <div className="mb-8">
           <div className="flex items-center justify-between gap-4">

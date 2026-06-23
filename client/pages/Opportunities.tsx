@@ -57,7 +57,7 @@ export default function Opportunities() {
 
   return (
     <Layout>
-      <SEO title="Market Opportunities Hub – Wayrus" />
+      <SEO title="Market Opportunities Hub – Wayrus" description="Scan and discover business opportunities, job listings, and project leads using our smart keyword matching tool." />
       <section className="relative overflow-hidden py-16 sm:py-24">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-secondary/10 rounded-full blur-3xl pointer-events-none" />
@@ -82,6 +82,9 @@ export default function Opportunities() {
             </p>
           </motion.div>
 
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-center mb-6">
+            Start Scanning
+          </h2>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

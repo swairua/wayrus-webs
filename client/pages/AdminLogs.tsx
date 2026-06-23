@@ -64,7 +64,7 @@ export default function AdminLogs() {
 
   return (
     <AdminLayout>
-      <SEO title="Admin – Logs" />
+      <SEO title="Admin – Logs" description="View system logs and activity history for the Wayrus platform." robots="noindex" />
       <section className="space-y-6">
         <div className="mb-8">
           <div className="flex items-center justify-between gap-4">
