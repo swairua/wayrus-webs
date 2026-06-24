@@ -28,6 +28,15 @@ const containerVariants = {
 };
 
 export default function Services() {
+  const serviceIdMap: Record<string, string[]> = {
+    "Website design & redesign": ["website-design-redesign", "ecommerce-web-development", "seo-optimization-services"],
+    "ERP & SaaS solutions": ["erp-saas-solutions", "cloud-platform-development"],
+    "Android & iOS apps": ["android-ios-app-development", "cross-platform-mobile-apps", "react-native-flutter-apps", "progressive-web-apps"],
+    "School assignments & projects support": ["school-assignments-projects"],
+    "Specialized systems": ["specialized-systems", "hospital-management-systems", "school-management-systems", "transport-logistics-software"],
+    "Custom enterprise software": ["custom-enterprise-software", "api-development-integration", "database-design-development"],
+  };
+
   const services = [
     {
       title: "Website design & redesign",
@@ -126,6 +135,7 @@ export default function Services() {
 
       {/* Services Grid */}
       <section className="container py-8 sm:py-12">
+        <span id="ui-ux-design-services" className="hidden" />
         <h2 className="text-3xl sm:text-4xl font-extrabold text-center mb-10">
           What We Offer
         </h2>
@@ -141,10 +151,15 @@ export default function Services() {
             return (
               <motion.div
                 key={s.title}
+                id={(serviceIdMap[s.title] ?? [s.title.toLowerCase().replace(/\s+/g, '-')])[0]}
                 variants={fadeUp}
                 whileHover={{ y: -8, transition: { duration: 0.3 } }}
                 className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${s.bgGradient} p-8 transition-all duration-300 cursor-pointer`}
               >
+                {/* Anchor targets for sitemap sub-URLs */}
+                {(serviceIdMap[s.title] ?? []).slice(1).map((id) => (
+                  <span key={id} id={id} className="hidden" />
+                ))}
                 {/* Hover overlay effect */}
                 <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-5 transition-opacity duration-300" />
 
@@ -187,7 +202,7 @@ export default function Services() {
       </section>
 
       {/* CTA Section */}
-      <section className="container py-12 sm:py-16">
+      <section id="consultation-cta" className="container py-12 sm:py-16">
         <motion.div
           initial="hidden"
           whileInView="show"
@@ -232,7 +247,7 @@ export default function Services() {
       </section>
 
       {/* Trust Section */}
-      <section className="container py-12 sm:py-16">
+      <section id="why-choose-wayrus" className="container py-12 sm:py-16">
         <motion.div
           initial="hidden"
           whileInView="show"

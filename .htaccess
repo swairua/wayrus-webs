@@ -15,6 +15,9 @@
     # Example: /api/leads -> api.php?request=leads
     RewriteRule ^api/(.*)$ api.php?request=$1 [QSA,L]
 
+    # Sitemap: Route /sitemap.xml to api.php for dynamic XML generation
+    RewriteRule ^sitemap\.xml$ api.php?request=sitemap.xml [QSA,L]
+
     # SPA Fallback: Route non-existent files/directories to index.html
     # This allows React Router to handle all route paths
     RewriteCond %{REQUEST_FILENAME} !-f

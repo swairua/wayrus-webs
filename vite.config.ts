@@ -51,6 +51,16 @@ function copyApiPlugin(): Plugin {
       } catch (err) {
         console.warn("⚠ Could not copy api.php to dist:", err);
       }
+      // Copy .htaccess to dist folder for Apache routing
+      try {
+        copyFileSync(
+          path.resolve(__dirname, ".htaccess"),
+          path.resolve(__dirname, "dist", ".htaccess"),
+        );
+        console.log("✓ .htaccess copied to dist folder");
+      } catch (err) {
+        console.warn("⚠ Could not copy .htaccess to dist:", err);
+      }
     },
   };
 }

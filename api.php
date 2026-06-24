@@ -1099,37 +1099,71 @@ try {
     elseif ($action === "sitemap") {
         header("Content-Type: application/xml; charset=utf-8");
 
-        $staticRoutes = [
-            '/' => ['priority' => '1.0', 'changefreq' => 'weekly'],
-            '/services' => ['priority' => '0.9', 'changefreq' => 'monthly'],
-            '/portfolios' => ['priority' => '0.8', 'changefreq' => 'weekly'],
-            '/contact' => ['priority' => '0.7', 'changefreq' => 'monthly'],
-            '/opportunities' => ['priority' => '0.6', 'changefreq' => 'weekly'],
-            '/terms' => ['priority' => '0.3', 'changefreq' => 'yearly'],
-            '/privacy' => ['priority' => '0.3', 'changefreq' => 'yearly'],
-            '/cookies' => ['priority' => '0.3', 'changefreq' => 'yearly'],
-            '/sitemap' => ['priority' => '0.4', 'changefreq' => 'monthly'],
-        ];
-
-        $urls = '';
         $baseUrl = 'https://wayrus.co.ke';
+        $today = date('Y-m-d');
+        $urls = '';
+
+        // Primary static routes with lastmod
+        $staticRoutes = [
+            '/'               => ['priority' => '1.0', 'changefreq' => 'weekly'],
+            '/services'       => ['priority' => '0.9', 'changefreq' => 'weekly'],
+            '/portfolios'     => ['priority' => '0.8', 'changefreq' => 'weekly'],
+            '/contact'        => ['priority' => '0.7', 'changefreq' => 'monthly'],
+            '/opportunities'  => ['priority' => '0.6', 'changefreq' => 'weekly'],
+            '/sitemap'        => ['priority' => '0.4', 'changefreq' => 'monthly'],
+            '/privacy'        => ['priority' => '0.3', 'changefreq' => 'yearly'],
+            '/terms'          => ['priority' => '0.3', 'changefreq' => 'yearly'],
+            '/cookies'        => ['priority' => '0.3', 'changefreq' => 'yearly'],
+        ];
 
         foreach ($staticRoutes as $path => $meta) {
             $urls .= "  <url>\n";
             $urls .= "    <loc>{$baseUrl}{$path}</loc>\n";
+            $urls .= "    <lastmod>{$today}</lastmod>\n";
             $urls .= "    <priority>{$meta['priority']}</priority>\n";
             $urls .= "    <changefreq>{$meta['changefreq']}</changefreq>\n";
             $urls .= "  </url>\n";
         }
 
-        // Add dynamic portfolio URLs
+        // Service sub-URLs with rich keywords for web dev, app dev, mobile apps, etc.
+        $serviceRoutes = [
+            'website-design-redesign'    => ['priority' => '0.85', 'changefreq' => 'monthly'],
+            'ecommerce-web-development'  => ['priority' => '0.85', 'changefreq' => 'monthly'],
+            'seo-optimization-services'  => ['priority' => '0.80', 'changefreq' => 'monthly'],
+            'android-ios-app-development' => ['priority' => '0.85', 'changefreq' => 'monthly'],
+            'cross-platform-mobile-apps' => ['priority' => '0.85', 'changefreq' => 'monthly'],
+            'react-native-flutter-apps'  => ['priority' => '0.80', 'changefreq' => 'monthly'],
+            'progressive-web-apps'       => ['priority' => '0.80', 'changefreq' => 'monthly'],
+            'erp-saas-solutions'         => ['priority' => '0.85', 'changefreq' => 'monthly'],
+            'cloud-platform-development' => ['priority' => '0.80', 'changefreq' => 'monthly'],
+            'api-development-integration' => ['priority' => '0.75', 'changefreq' => 'monthly'],
+            'ui-ux-design-services'      => ['priority' => '0.80', 'changefreq' => 'monthly'],
+            'custom-enterprise-software' => ['priority' => '0.85', 'changefreq' => 'monthly'],
+            'hospital-management-systems' => ['priority' => '0.80', 'changefreq' => 'monthly'],
+            'school-management-systems'  => ['priority' => '0.80', 'changefreq' => 'monthly'],
+            'transport-logistics-software' => ['priority' => '0.80', 'changefreq' => 'monthly'],
+            'database-design-development' => ['priority' => '0.75', 'changefreq' => 'monthly'],
+            'school-assignments-projects' => ['priority' => '0.70', 'changefreq' => 'monthly'],
+        ];
+
+        foreach ($serviceRoutes as $anchor => $meta) {
+            $urls .= "  <url>\n";
+            $urls .= "    <loc>{$baseUrl}/services#{$anchor}</loc>\n";
+            $urls .= "    <lastmod>{$today}</lastmod>\n";
+            $urls .= "    <priority>{$meta['priority']}</priority>\n";
+            $urls .= "    <changefreq>{$meta['changefreq']}</changefreq>\n";
+            $urls .= "  </url>\n";
+        }
+
+        // Dynamic portfolio URLs
         $portfolioResult = $conn->query("SELECT id, title, created_at FROM portfolios WHERE status='active' ORDER BY id DESC");
         if ($portfolioResult && $portfolioResult->num_rows > 0) {
             while ($row = $portfolioResult->fetch_assoc()) {
+                $lastmod = date('Y-m-d', strtotime($row['created_at']));
                 $urls .= "  <url>\n";
                 $urls .= "    <loc>{$baseUrl}/portfolios</loc>\n";
-                $urls .= "    <lastmod>" . date('Y-m-d', strtotime($row['created_at'])) . "</lastmod>\n";
-                $urls .= "    <priority>0.7</priority>\n";
+                $urls .= "    <lastmod>{$lastmod}</lastmod>\n";
+                $urls .= "    <priority>0.8</priority>\n";
                 $urls .= "    <changefreq>monthly</changefreq>\n";
                 $urls .= "  </url>\n";
             }

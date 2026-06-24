@@ -18,7 +18,7 @@ interface SEOProps {
 export default function SEO({
   title,
   description = "Wayrus Business Solutions Ltd - Smart Digital Solutions for Business Growth. We build websites, mobile apps, ERPs, SaaS, and specialized enterprise systems.",
-  keywords = "web development, mobile app development, ERP systems, SaaS, custom software, digital solutions, business software, enterprise systems",
+  keywords = "web development, web design, website redesign, e-commerce development, SEO optimization, mobile app development, Android apps, iOS apps, cross-platform apps, React Native, Flutter, progressive web apps, ERP systems, SaaS platforms, cloud solutions, API development, database design, UI/UX design, custom enterprise software, hospital management systems, school management systems, transport logistics software, IT consulting, Kenya web developers, Nairobi app developers, East Africa digital solutions, business process automation, digital transformation",
   image = "/logo.svg",
   canonical = typeof window !== "undefined" ? window.location.href : "",
   author = "Wayrus Business Solutions Ltd",
